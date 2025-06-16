@@ -1,15 +1,16 @@
 const express = require('express'),
       cookie = require('cookie-session'),
-      hbs = require('express-handlebars').engine,
       { MongoClient, ObjectId } = require('mongodb'),
       app = express();
+
+//hbs = require('express-handlebars').engine,
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
-app.engine('handlebars', hbs())
-app.set('view engine', 'handlebars');
-app.set('views', __dirname + '/views');
+// app.engine('handlebars', hbs())
+// app.set('view engine', 'handlebars');
+// app.set('views', __dirname + '/views');
 
 app.use(cookie({
     name: 'session',
@@ -44,46 +45,58 @@ let currUser = "";
 let newUser = false;
 
 app.post ('/login', async (req, res) => {
-    console.log(req.body)
-    const users = await client.db("a3").collection("users"),
-        user = await users.find({username: req.body.username}).toArray();
-    //console.log(user)
+    let dataString = ""
 
-    if (user.length === 0) {
-        currUser = req.body.username;
-        newUser = true;
+    req.on( "data", function( data ) {
+        dataString += data
+    })
 
-        client.db("a3").collection("users").insertOne({username: req.body.username, password: req.body.password})
-        .then(result => {
-            console.log(result);
-            res.redirect('/app.html');
-        }) .catch(error => {
-            console.error(error);
-            res.render('login', {msg: 'Account creation failed! Please try again.', layout:false});
-        })
+    req.on( "end", async function() {
+        const data = JSON.parse(dataString);
+        console.log(data)
 
-        req.session.login = true;
-    } else if (user.length === 1) {
-        if (user[0].password === req.body.password) {
-            currUser = req.body.username;
+        const users = await client.db("a3").collection("users"),
+            user = await users.find({username: data.username}).toArray();
+        //console.log(user)
+
+        if (user.length === 0) {
+            currUser = data.username;
+            newUser = true;
+
+            client.db("a3").collection("users").insertOne({username: data.username, password: data.password})
+            .then(result => {
+                console.log(result);
+                //res.redirect('/app.html');
+                res.json("success")
+            }) .catch(error => {
+                console.error(error);
+                res.json("Creation Failure")
+            })
+
             req.session.login = true;
+        } else if (user.length === 1) {
+            if (user[0].password === data.password) {
+                currUser = data.username;
+                req.session.login = true;
 
-            res.redirect('/app.html');
+                //res.redirect('/app.html');
+                res.json("success")
+            } else {
+                req.session.login = false;
+                res.json("Incorrect password")
+            }
         } else {
-            req.session.login = false;
-            res.render('login', {msg:'Login Failed! Incorrect password. Please try again.', layout:false})
+            console.error('Error: Multiple users with the same username');
+            res.json("Login Failed")
         }
-    } else {
-        console.error('Error: Multiple users with the same username');
-        res.render('login', {msg:'Login Failed! Please try again.', layout:false})
-    }
+    })
 })
 
 app.get('/', (req, res) => {
     if(req.session.login === true) {
         res.redirect('/app.html');
     } else {
-        res.render('login', {msg:"", layout:false})
+        res.redirect('/login.html');
     }
 })
 
@@ -91,7 +104,7 @@ app.use(function(req, res, next) {
     if( req.session.login === true )
         next()
     else
-        res.render('login', {msg:'Login Failed! Please try again.', layout:false})
+        res.redirect('/login.html')
 })
 
 app.get('/app.html', (req, res) => {

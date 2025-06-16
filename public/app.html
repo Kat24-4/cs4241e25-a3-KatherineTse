@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <title>CS4241 Assignment 3 App</title>
+    <title>CS4241 A3: Gymnastics Personal Score Tracker</title>
     <meta charset="utf-8">
     <meta name="description" content="CS4241 Assignment 3 Main Page (data table and data forms)">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -20,7 +20,7 @@
     <hr />
     <div style="height: 100px" class="container-fluid d-flex">
       <!-- Image on left of header -->
-      <img id="gymnastHandstand" src="images/gymnastHandstand.png" class="text-end" alt="Photo of a gymnast doing a handstand" />
+      <img id="gymnastHandstand" src="images/gymnastHandstand.png" class="text-end" alt="Silhouette of a gymnast doing a handstand" />
 
       <!-- Title and form display buttons in header -->
       <div class="headerCenter align-self-center flex-grow-1 p-4">
@@ -31,6 +31,7 @@
     <hr />
   </header>
     <main class="formAndEntries d-flex flex-column">
+      <p class="m-auto mb-4 h5"><strong>Welcome to your personal score tracker!</strong> You can add and delete competitions by clicking on the buttons below and filling out the forms.<br />All competitions added will be displayed in the table below. The "Edit Entry" button, will open a form that will update entries stored.</p>
       <div class="formControl m-auto mb-4">
         <button id="addEntry" class="btn btn-warning me-2 mt-3">Add Entry</button>
         <button id="delEntry" class="btn btn-warning ms-2 mt-3">Delete Entry</button>
@@ -60,7 +61,7 @@
         <label class="form-check-label ps-1 mb-4" for="diamond">Diamond</label>
         <br />
 
-        <label>3. Enter the Four Individual Event Scores:</label><br />
+        <label>3. Enter the Four Individual Event Scores:<br />(can include up to three decimal points, ex. 9.125)</label><br />
         <div class="scores">
           <!-- Input 3: Vault Score -->
           <label class="ms-2 mb-3" for="vaultScore">Vault:</label>
@@ -93,7 +94,7 @@
         </div>
 
         <!-- Input 1: # of Entry to Delete -->
-        <label for="toDel">Enter the Number(#) of the Entry You Would Like to Delete</label><br />
+        <label for="toDel">Enter the Number(#) of the Entry You Would Like to Delete<br />(Entry number can be found in the first column of the table below)</label><br />
         <input type="number" id="toDel" class="mt-1 ms-2" name="toDel" min="1"><br />
 
         <!-- Button to Submit Form -->
@@ -106,6 +107,7 @@
         <!-- Form Header -->
         <div class="sectionHeader">
           <h2>Edit Entry Form</h2>
+          <p>Update fields below and save to edit entry.</p>
         </div>
 
         <!-- Input 0: Entry Number (read only) -->
@@ -113,17 +115,17 @@
         <input type="number" id="num" class="mt-1 mb-4 ms-2" name="num" readonly><br />
 
         <!-- Input 1: Competition Info -->
-        <label for="editComp">Enter the Name and Year of the Competition:</label><br />
+        <label for="editComp">Name and Year of the Competition:</label><br />
         <input type="text" id="editComp" class="mt-1 mb-4 ms-2" name="editComp"><br />
 
         <!-- Input 2: Level -->
-        <label >Select the Level Competed:</label><br />
+        <label >Level Competed:</label><br />
         <input class="form-check-input mb-1 ms-2" type="radio" name="editLevel" id="editBronze" value="Bronze">
         <label class="form-check-label ps-1 mb-1" for="editBronze">Bronze</label>
         <input class="form-check-input mb-1 ms-2" type="radio" name="editLevel" id="editSilver" value="Silver">
         <label class="form-check-label ps-1 mb-1" for="editSilver">Silver</label>
         <input class="form-check-input mb-1 ms-2" type="radio" name="editLevel" id="editGold" value="Gold">
-        <label class="form-check-label ps-1 mb-1" for="editGold">Gold</label>
+        <label class="form-check-label ps-1 mb-1" for="editGold">Gold</label><br />
         <input class="form-check-input mb-4 ms-4" type="radio" name="editLevel" id="editPlatinum" value="Platinum">
         <label class="form-check-label ps-1 mb-4" for="editPlatinum">Platinum</label>
         <input class="form-check-input mb-4 ms-4" type="radio" name="editLevel" id="editDiamond" value="Diamond">
@@ -193,9 +195,9 @@
 
         <!-- Footer Links -->
         <nav>
-          <a class="link-dark link-offset-1 link-underline link-underline-dark link-underline-opacity-25-hover" href="https://usagym.org/">USA Gymnastics</a> |
-          <a class="link-dark link-offset-1 link-underline link-underline-dark link-underline-opacity-25-hover" href="https://www.meetscoresonline.com/">Meet Scores Online</a> |
-          <a class="link-dark link-offset-1 link-underline link-underline-dark link-underline-opacity-25-hover" href="https://nationalgym.org/">National Gymnastics Association</a>
+          <a class="link-dark link-offset-1 link-underline link-underline-dark link-underline-opacity-25-hover" href="https://usagym.org/">USA Gymnastics Site</a> |
+          <a class="link-dark link-offset-1 link-underline link-underline-dark link-underline-opacity-25-hover" href="https://www.meetscoresonline.com/">Meet Scores Online Site</a> |
+          <a class="link-dark link-offset-1 link-underline link-underline-dark link-underline-opacity-25-hover" href="https://nationalgym.org/">National Gymnastics Association Site</a>
         </nav>
         <hr id="footerBottomLine"/>
       </div>
