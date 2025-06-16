@@ -30,24 +30,51 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        await client.db("a3").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
-    } finally {
+    } catch {
         // Ensures that the client will close when you finish/error
-        await client.close();
+        // await client.close();
+        console.log("Error: Could not connect to MongoDB!");
     }
 }
 run().catch(console.dir);
 
-app.post ('/login', (req, res) => {
+let currUser = "";
+let newUser = false;
+
+app.post ('/login', async (req, res) => {
     console.log(req.body)
+    const users = await client.db("a3").collection("users"),
+        user = await users.find({username: req.body.username}).toArray();
+    //console.log(user)
 
-    if (req.body.password === 'temp') {
-        req.session.login = true
+    if (user.length === 0) {
+        currUser = req.body.username;
+        newUser = true;
 
-        res.redirect('/app.html')
+        client.db("a3").collection("users").insertOne({username: req.body.username, password: req.body.password})
+        .then(result => {
+            console.log(result);
+            res.redirect('/app.html');
+        }) .catch(error => {
+            console.error(error);
+            res.render('login', {msg: 'Account creation failed! Please try again.', layout:false});
+        })
+
+        req.session.login = true;
+    } else if (user.length === 1) {
+        if (user[0].password === req.body.password) {
+            currUser = req.body.username;
+            req.session.login = true;
+
+            res.redirect('/app.html');
+        } else {
+            req.session.login = false;
+            res.render('login', {msg:'Login Failed! Incorrect password. Please try again.', layout:false})
+        }
     } else {
-        req.session.login = false
+        console.error('Error: Multiple users with the same username');
         res.render('login', {msg:'Login Failed! Please try again.', layout:false})
     }
 })
@@ -71,12 +98,8 @@ app.get('/app.html', (req, res) => {
     res.render('/app.html')
 })
 
-const appdata = [
-    { "id": 1, "compInfo": "San Francisco Classic 2021", "level": "Platinum", "vaultScore": 8.9, "barScore":  9.1, "beamScore": 9.25, "floorScore": 8.925, "totalScore": 36.175 },
-    { "id": 2, "compInfo": "Region 1 Regionals 2018", "level": "Gold", "vaultScore": 9.3, "barScore":  9.225, "beamScore": 9.5, "floorScore": 9.375, "totalScore": 37.4 },
-    { "id": 3, "compInfo": "Worcester Invitational 2022", "level": "Diamond", "vaultScore": 8.9, "barScore":  9.1, "beamScore": 9.25, "floorScore": 8.925, "totalScore": 36.175 }
-]
-
+let collection
+let comps
 let nextID = 4; // track what the next entry ID will be
 
 app.post ('/submit', (req, res) => {
@@ -86,7 +109,7 @@ app.post ('/submit', (req, res) => {
         dataString += data
     })
 
-    req.on( "end", function() {
+    req.on( "end", async function() {
         const data = JSON.parse( dataString )
         //console.log( data )
 
@@ -94,31 +117,35 @@ app.post ('/submit', (req, res) => {
         if ( data.compInfo && data.level && data.vaultScore && data.barScore && data.beamScore && data.floorScore ) {
             // add new entry or update entry
             const totalScore = Number(data.vaultScore) + Number(data.barScore) + Number(data.beamScore) + Number(data.floorScore)
-            data.totalScore = Math.round(totalScore * 1000) / 1000
+            data.totalScore = `${Math.round(totalScore * 1000) / 1000}`
 
             if ( data.id ) { // if there is an ID, update the corresponding information
-                appdata[data.id - 1] = data;
+                //console.log(data)
+                const result = await collection.updateOne({user:currUser, id: data.id}, {$set:{compInfo:data.compInfo, level:data.level, vaultScore:data.vaultScore, barScore:data.barScore, beamScore:data.beamScore, floorScore:data.floorScore, totalScore:data.totalScore}})
+                //console.log(result)
             } else { // if no existing ID, add new data entry
-                let finalData = {"id": nextID, ...data}
-                appdata.push( finalData );
+                let finalData = {"user": currUser, "id": `${nextID}`, ...data}
+                await collection.insertOne(finalData)
 
                 nextID += 1;
             }
 
-            res.writeHead( 200, "OK", {"Content-Type": "text/plain" })
-            res.end( JSON.stringify(appdata) )
+            comps = await collection.find({user: currUser}).toArray()
+            res.json(comps)
         } else if ( Number(data) < nextID) {
             // if there is only an ID number, and it is less than the next ID number, delete corresponding data entry
-            appdata.splice( (Number(data) - 1), 1 )
-
-            appdata.forEach((entry, index) => {
-                entry.id = index + 1;
-            });
+            const delRes = await collection.deleteOne({id: data})
+            console.log(delRes)
 
             nextID -= 1;
 
-            res.writeHead( 200, "OK", {"Content-Type": "text/plain" })
-            res.end( JSON.stringify(appdata) )
+            for (let i = Number(data); i < nextID; i++) {
+                let updateRes = await collection.updateOne({user:currUser, id:`${i+1}`}, {$set:{id:`${i}`}})
+                console.log(updateRes)
+            }
+
+            comps = await collection.find({user: currUser}).toArray()
+            res.json(comps)
         } else {
             // if none of the three known actions, throw error
             res.writeHead( 400, "Bad Request", {"Content-Type": "text/plain"} )
@@ -127,9 +154,17 @@ app.post ('/submit', (req, res) => {
     })
 })
 
-app.get('/loadData', (req, res) => {
-    res.writeHead( 200, "OK", {"Content-Type": "text/plain" })
-    res.end( JSON.stringify(appdata) )
+app.get('/loadData', async (req, res) => {
+    if (newUser === true) {
+        res.writeHead( 200, "OK", {"Content-Type": "text/plain" })
+        res.end(JSON.stringify("new"))
+    } else {
+        collection = await client.db("a3").collection("competitions")
+        comps = await collection.find({user: currUser}).toArray()
+        res.json(comps)
+
+        nextID = comps.length + 1;
+    }
 })
 
 app.listen(3000)

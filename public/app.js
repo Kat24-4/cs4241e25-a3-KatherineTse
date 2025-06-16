@@ -148,10 +148,12 @@ const updateData = function (data) {
     for (let element of data) {
         let row = display.insertRow();
         for (let key in element) {
-            let cell = row.insertCell();
-            let info = document.createTextNode(element[key]);
-            cell.setAttribute("class", "align-middle");
-            cell.appendChild(info);
+            if ((key !== "_id") && (key !== "user")) {
+                let cell = row.insertCell();
+                let info = document.createTextNode(element[key]);
+                cell.setAttribute("class", "align-middle");
+                cell.appendChild(info);
+            }
         }
         let buttonCell = row.insertCell();
         let button = document.createElement("button");
@@ -242,7 +244,11 @@ const loadData = async function () {
 
     const data = JSON.parse(appdata)
 
-    updateData(data)
+    if (data === "new") {
+        alert("New user created with username and password. Welcome!");
+    } else {
+        updateData(data);
+    }
 }
 
 /*
