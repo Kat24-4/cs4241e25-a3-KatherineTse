@@ -230,7 +230,8 @@ const prefillEdit = function (info) {
 * Name: loadData
 * Input: N/A
 * Output: N/A
-* Purpose: Sends request to server to get data when website is first loaded
+* Purpose: Sends request to server to get data when website is first loaded.
+*          Calls function to display data if there is any or sends alter to new user that their account has successfully been created
 */
 const loadData = async function () {
 

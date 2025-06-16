@@ -3,15 +3,11 @@ const express = require('express'),
       { MongoClient, ObjectId } = require('mongodb'),
       app = express();
 
-//hbs = require('express-handlebars').engine,
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
-// app.engine('handlebars', hbs())
-// app.set('view engine', 'handlebars');
-// app.set('views', __dirname + '/views');
-
+// enable cookies
 app.use(cookie({
     name: 'session',
     keys: ['tempKey1', 'tempKey2']
@@ -19,8 +15,10 @@ app.use(cookie({
 
 app.use(express.static('public'))
 
+// needed to use .env file
 require('dotenv').config();
 
+// for connecting to MongoDB database
 const uri = `mongodb+srv://${process.env.MDB_USER}:${process.env.MDB_PASS}@${process.env.MDB_HOST}`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -41,28 +39,34 @@ async function run() {
 }
 run().catch(console.dir);
 
+// variables to store info for tracking user sessions
 let currUser = "";
 let newUser = false;
 
+// how to handle user's attempt to login
 app.post ('/login', async (req, res) => {
     let dataString = ""
 
+    // parse data
     req.on( "data", function( data ) {
         dataString += data
     })
 
     req.on( "end", async function() {
         const data = JSON.parse(dataString);
-        console.log(data)
+        // console.log(data)
 
+        // get user collection and pull all entries with the username the user entered
         const users = await client.db("a3").collection("users"),
             user = await users.find({username: data.username}).toArray();
         //console.log(user)
 
-        if (user.length === 0) {
+        // handle various cases
+        if (user.length === 0) { // if the array is empty then there is not an existing user with that username
             currUser = data.username;
             newUser = true;
 
+            // create new user account with the username and password entered by adding it to database and then redirect to main app page
             client.db("a3").collection("users").insertOne({username: data.username, password: data.password})
             .then(result => {
                 console.log(result);
@@ -74,24 +78,25 @@ app.post ('/login', async (req, res) => {
             })
 
             req.session.login = true;
-        } else if (user.length === 1) {
-            if (user[0].password === data.password) {
+        } else if (user.length === 1) { // if there is one object in array, then user exists in database
+            if (user[0].password === data.password) { // if the password matches the entered password, then successfully log user in and redirect to main page
                 currUser = data.username;
                 req.session.login = true;
 
                 //res.redirect('/app.html');
                 res.json("success")
-            } else {
+            } else { // if password doesn't match, send error to login page and be ready for user to try again
                 req.session.login = false;
                 res.json("Incorrect password")
             }
-        } else {
+        } else { // if there are more than 1 user with the same username return error and allow user to try logging in again (this should not happen and would likely be the result of a glitch)
             console.error('Error: Multiple users with the same username');
             res.json("Login Failed")
         }
     })
 })
 
+// when user tries to go to website, send logged-in users to main page and non-logged in users to login page
 app.get('/', (req, res) => {
     if(req.session.login === true) {
         res.redirect('/app.html');
@@ -100,6 +105,7 @@ app.get('/', (req, res) => {
     }
 })
 
+// another catch to ensure user is logged in before accessing main page with data
 app.use(function(req, res, next) {
     if( req.session.login === true )
         next()
@@ -107,14 +113,17 @@ app.use(function(req, res, next) {
         res.redirect('/login.html')
 })
 
+// path to main page
 app.get('/app.html', (req, res) => {
     res.render('/app.html')
 })
 
+// variables for data manipulation
 let collection
 let comps
 let nextID = 4; // track what the next entry ID will be
 
+// when user submits form that manipulates data handle it here
 app.post ('/submit', (req, res) => {
     let dataString = ""
 
@@ -152,6 +161,7 @@ app.post ('/submit', (req, res) => {
 
             nextID -= 1;
 
+            // renumber other entries so that the display does not have missing data entry numbers
             for (let i = Number(data); i < nextID; i++) {
                 let updateRes = await collection.updateOne({user:currUser, id:`${i+1}`}, {$set:{id:`${i}`}})
                 console.log(updateRes)
@@ -167,6 +177,7 @@ app.post ('/submit', (req, res) => {
     })
 })
 
+// when main page is first loaded, send data attached to the logged-in user or tell front-end java that there is no data because the user is new
 app.get('/loadData', async (req, res) => {
     if (newUser === true) {
         res.writeHead( 200, "OK", {"Content-Type": "text/plain" })
