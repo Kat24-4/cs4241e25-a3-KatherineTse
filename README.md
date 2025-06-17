@@ -3,9 +3,11 @@ Katherine Tse Project A3 Readme
 
 ## Gymnastics Competition Personal Score Tracker
 
-Deployment Link: 
+Deployment Link: cs4241e25-a3-katherinetse-production.up.railway.app
 
-Include a very brief summary of your project here. Images are encouraged, along with concise, high-level text. Be sure to include:
+Instructions: When logging in, if you add a username not currently in the database, it will "create an account for you". There is one existing account with data entries attached to it. The username and password to log in can be found below. 
+  - username: ktse
+  - password: thisismypassword1
 
 Goal of Application: 
 - The goal of the application is to provide gymnasts with a single place where they can track their competition scores online. Users can log in to see their data, and once they are logged in, they can add, edit, and delete entries. 
@@ -36,6 +38,8 @@ Express Middleware Packages:
 ## Technical Achievements
 - **Tech Achievement 1**: 100% on the Google Lighthouse Test
   - ![100Lighthouse.png](public/images/100Lighthouse.png)
+- **Tech Achievement 2**: Deployed with different service - Railway.app
+  - Railway is a service designed to make deployment as easy as possible (according to their marketing). I will say, that deploy was pretty easy. I created an accoun through my github and was able to upload my project through the github url which is very similar to Glith. I think that the UI for railway is more complex than Glitch's so it did take me a few minutes to navigate the site and figure out what was what once the project was deployed. I can see how their UI would be helpful once you got to know it though. It has a block coding feel. Once the project was successfully deployed from the github page, I did have to go and add in the environment varibles. Once again, it took me a second to find where to do that, but once I did, it was really easy to add them in. Lastly, I struggled a bit with finding the public link for the deployment. I did have to do a bit of googling to figure out that you actually have to generate a public networking link that will be used for your application. Once I figured that out, I tried to doa custom domain but that required registering it with your local DNS and so I ended up having railway just generate a doman for me. Once I did that, it all seemed to work out pretty well. Overall, I think that Railway is a much more complex server than Glitch and it has a lot of other features Glitch does not. This does make it harder to get the handle of right off the bat, but in the end, it is very easy to use. The last note that I have is that it is a paid service with a 30-Day free trial, so while I am not paying to deploy for this class, if I wanted to do something long-term, I would have to pay at least a small amount. 
 
 ### Design/Evaluation Achievements
 - **Design Achievement 1**: I followed the following tips from the W3C Web Accessibility Initiative:
